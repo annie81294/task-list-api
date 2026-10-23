@@ -150,7 +150,7 @@ def test_get_task_not_found(client):
     assert response.status_code == 404
     # *****************************************************************
     # **Complete test with assertion about response body***************
-    assert response_body == {"message": "task 1 not found"}
+    assert response_body == {"details": "Invalid data"}
     # *****************************************************************
 
 
@@ -213,7 +213,7 @@ def test_update_task_not_found(client):
     assert response.status_code == 404
     # *****************************************************************
     # **Complete test with assertion about response body***************
-    assert response_body == {"message": "task 1 not found"}
+    assert response_body == {"details": "Invalid data"}
     # *****************************************************************
 
 
@@ -238,7 +238,7 @@ def test_delete_task_not_found(client):
     assert response.status_code == 404
     # *****************************************************************
     # **Complete test with assertion about response body***************
-    assert response_body == {"message": "task 1 not found"}
+    assert response_body == {"details": "Invalid data"}
     # *****************************************************************
 
     assert db.session.scalars(db.select(Task)).all() == []
