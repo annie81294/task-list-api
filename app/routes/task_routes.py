@@ -1,10 +1,12 @@
 from flask import Blueprint, abort, make_response, request, Response
 from app.models.task import Task
 from ..db import db
+from datetime import datetime
+from ..slack import send_slack_notification
 
-tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
+bp = Blueprint("bp", __name__, url_prefix="/tasks")
 
-@tasks_bp.post("")
+@bp.post("")
 def create_task():
     request_body = request.get_json()
     
@@ -18,7 +20,7 @@ def create_task():
 
     return new_task.to_dict(), 201
 
-@tasks_bp.get("")
+@bp.get("")
 def get_all_tasks():
     sort_order = request.args.get("sort", "asc")
 
@@ -51,13 +53,13 @@ def validate_task(task_id):
 
     return task
 
-@tasks_bp.get("/<task_id>")
+@bp.get("/<task_id>")
 def get_one_task(task_id):
     task = validate_task(task_id)
 
     return task.to_dict()
 
-@tasks_bp.put("/<task_id>")
+@bp.put("/<task_id>")
 def update_task(task_id):
     task = validate_task(task_id)
     request_body = request.get_json()
@@ -69,10 +71,31 @@ def update_task(task_id):
 
     return Response(status=204, mimetype="application/json")
 
-@tasks_bp.delete("/<task_id>")
+@bp.delete("/<task_id>/")
 def delete_task(task_id):
     task = validate_task(task_id)
     db.session.delete(task)
+    db.session.commit()
+
+    return Response(status=204, mimetype="application/json")
+
+@bp.patch("/<task_id>/mark_complete")
+def mark_complete(task_id):
+    task = validate_task(task_id)
+    print("Task title:", task.title)
+    print("Completed at before PATCH:", task.completed_at)
+
+    task.completed_at = datetime.now()
+    db.session.commit()
+    send_slack_notification(task.title)
+
+    return task.to_dict(), 200
+
+@bp.patch("/<task_id>/mark_incomplete")
+def mark_incomplete(task_id):
+    task = validate_task(task_id)
+
+    task.completed_at = None
     db.session.commit()
 
     return Response(status=204, mimetype="application/json")
