@@ -1,5 +1,6 @@
-from flask import Blueprint, abort, make_response, request, Response
+from flask import Blueprint, request, Response
 from app.models.task import Task
+from app.models.goal import Goal
 from ..db import db
 from datetime import datetime
 from ..slack import send_slack_notification
@@ -64,7 +65,7 @@ def mark_complete(task_id):
     db.session.commit()
     send_slack_notification(task.title)
 
-    return task.to_dict(), 200
+    return task.to_dict(), 204
 
 @tasks_bp.patch("/<task_id>/mark_incomplete")
 def mark_incomplete(task_id):
@@ -74,3 +75,17 @@ def mark_incomplete(task_id):
     db.session.commit()
 
     return Response(status=204, mimetype="application/json")
+
+# @tasks_bp.post("/<goal_id>/tasks")
+# def create_task_with_goal(goal_id):
+#     goal = validate_model(goal, goal_id)
+    
+#     request_body = request.get_json()
+#     request_body["goal_id"] = goal.id
+#     return create_model(Task, request_body)
+
+# @tasks_bp.get("/<goal_id>/tasks")
+# def get_tasks_by_goal(goal_id):
+#     goal = validate_model(Goal, goal_id)
+#     response = [task.to_dict() for task in goal.tasks]
+#     return response
